@@ -14,7 +14,6 @@ function getSheetCtx_() {
   const headers = values[0] || [];
   const keys = headers.map(normKey);
 
-  // helper pour trouver un index via une liste d'aliases possibles
   const findIdx = (aliases) => {
     for (let a of aliases) {
       const i = keys.indexOf(a);
@@ -23,20 +22,21 @@ function getSheetCtx_() {
     return -1;
   };
 
-  // Nouvelles colonnes + compat ascendante
   const idx = {
-    societe:     findIdx(['societe']),
-    magazine:    findIdx(['magazine', 'magazinebvvougb']),
-    dateRappel:  findIdx(['daterappel', 'datederappel', 'datederapprel', 'datederapppl', 'relance']), // tolère fautes/ancien
-    commentaires:findIdx(['commentaires', 'notes']),
-    telephone:   findIdx(['telephone']),
-    mail:        findIdx(['mail', 'email']),
-    nom:         findIdx(['nom']),
-    prenom:      findIdx(['prenom']),
-    poste:       findIdx(['poste']),
-    adresse:     findIdx(['adresse']),
-    // anciens champs qu'on ignore côté front mais qu'on peut rencontrer
-    statut:      findIdx(['statut']),
+    societe:      findIdx(['societe']),
+    magazine:     findIdx(['magazine', 'magazinebvvougb']),
+    dateRappel:   findIdx(['daterappel', 'datederappel', 'datederapprel', 'datederapppl', 'relance']),
+    commentaires: findIdx(['commentaires', 'notes']),
+    telephone:    findIdx(['telephone']),
+    mail:         findIdx(['mail', 'email']),
+    nom:          findIdx(['nom']),
+    prenom:       findIdx(['prenom']),
+    poste:        findIdx(['poste']),
+    adresse:      findIdx(['adresse']),
+    // pour compat dans doGet (facultatif si tu veux garder les if de secours)
+    relance:      findIdx(['relance']),
+    notes:        findIdx(['notes']),
+    statut:       findIdx(['statut']),
   };
 
   return { sheet, values, display, headers, keys, idx };
@@ -103,34 +103,35 @@ function doGet(e) {
   const { values, display, headers, idx } = getSheetCtx_();
   const out = [];
 
+  // helper lecture SÛR dans UNE LIGNE (et pas dans la matrice)
+  const at = (rowArr, j) => (j >= 0 ? (rowArr[j] ?? '') : '');
+
   for (let i = 1; i < values.length; i++) {
-    const rowV = values[i] || [];
-    const rowD = display[i] || [];
+    const rowV = values[i]  || []; // valeurs brutes
+    const rowD = display[i] || []; // valeurs affichées (formatées)
+
     const o = { gsId: i };
 
-    // helper lecture avec sécurité
-    const at = (j, arr) => (j >= 0 ? (arr[j] ?? '') : '');
+    // 🔧 Utiliser rowV/rowD, pas "values"
+    o.societe      = at(rowV, idx.societe);
+    o.magazine     = at(rowV, idx.magazine);
+    o.dateRappel   = toISO_(at(rowV, idx.dateRappel));
+    o.commentaires = at(rowV, idx.commentaires);
 
-    // Construire l'objet de sortie unifié (frontend)
-    o.societe     = at(idx.societe, values);
-    o.magazine    = at(idx.magazine, values);
-    o.dateRappel  = toISO_(at(idx.dateRappel, rowV)); // date brute -> ISO
-    o.commentaires= at(idx.commentaires, values) || at(idx.commentaires, rowV);
+    // téléphone: affichage pour conserver zéros/espaces
+    o.telephone    = at(rowD, idx.telephone);
 
-    // téléphone : utiliser l'affichage (pour conserver les 0, espaces, etc.)
-    o.telephone   = at(idx.telephone, rowD);
+    // mail: brut
+    o.mail         = at(rowV, idx.mail);
 
-    // mail : brut
-    o.mail        = at(idx.mail, values) || at(idx.mail, rowV);
+    o.nom          = at(rowV, idx.nom);
+    o.prenom       = at(rowV, idx.prenom);
+    o.poste        = at(rowV, idx.poste);
+    o.adresse      = at(rowV, idx.adresse);
 
-    o.nom         = at(idx.nom, values);
-    o.prenom      = at(idx.prenom, values);
-    o.poste       = at(idx.poste, values);
-    o.adresse     = at(idx.adresse, values);
-
-    // Compat ascendante (anciens noms si les nouveaux manquent)
-    if (!o.dateRappel && idx.relance >= 0) o.dateRappel = toISO_(at(idx.relance, rowV));
-    if (!o.commentaires && idx.notes >= 0) o.commentaires = at(idx.notes, values);
+    // Compat ascendante (si colonnes anciennes existent encore)
+    if (!o.dateRappel && idx.relance >= 0)      o.dateRappel   = toISO_(at(rowV, idx.relance));
+    if (!o.commentaires && idx.notes >= 0)      o.commentaires = at(rowV, idx.notes);
 
     out.push(o);
   }
