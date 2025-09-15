@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BVV-GB ǀ CRM Elixir</title>
+  <style>
+    :root{
+      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --acc:#22d3ee; --acc2:#60a5fa; --border:#1f2937; --danger:#ef4444;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:linear-gradient(180deg,#0b1220, #0f172a 120%); color:var(--text)}
+    .wrap{max-width:100%;margin:32px auto;padding:0 16px}
+    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .title{font-size:20px;font-weight:700;letter-spacing:.2px}
+    .badge{font-size:12px;color:#0b1220;background:linear-gradient(90deg,var(--acc),var(--acc2));padding:6px 10px;border-radius:999px;font-weight:700}
+
+    /* Inputs : style robuste (même sans type explicite) */
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    select, textarea{
+      background:#0b1220;border:1px solid var(--border);color:var(--text);
+      padding:10px 12px;border-radius:10px;outline:none;width:100%;
+    }
+    input::placeholder,textarea::placeholder{color:#6b7280}
+    .btn{border:1px solid var(--border);background:#0b1220;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s ease;user-select:none}
+    .btn:hover{transform:translateY(-1px);border-color:#2c3747}
+    .btn.primary{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#0b1220;border:none;font-weight:700}
+    .btn.ghost{background:transparent}
+    .btn.danger{background:#241114;border-color:#3d1a1a;color:#fca5a5}
+    .btn[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+
+    .grid{display:grid;grid-template-columns:1fr auto auto;gap:10px}
+    .card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;padding:14px}
+
+    /* TABLE + SCROLLBAR */
+    .table-container{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .table{min-width:1800px;width:auto;border-collapse:separate;border-spacing:0 8px}
+    .table thead th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:0 10px 6px;white-space:nowrap}
+    .row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px}
+    .row td{padding:12px 10px;white-space:normal;word-wrap:break-word}
+    .row td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
+    .row td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
+
+    .muted{color:var(--muted)}
+    .actions{display:flex;gap:8px;justify-content:center}
+    .link{color:#93c5fd;text-decoration:none;word-break:break-all}
+
+    dialog{border:none;border-radius:16px;padding:0;max-width:820px;width:96%;background:#0b1220;color:var(--text)}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .modal-body{padding:16px}
+    .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .modal-grid textarea{grid-column:1/-1;height:96px}
+    .modal-grid .full{grid-column:1/-1} /* Adresse en pleine largeur */
+    .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 16px;border-top:1px solid var(--border)}
+
+    .hint{font-size:12px;color:var(--muted)}
+    .kbd{font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;border:1px solid var(--border);padding:3px 6px;border-radius:6px;background:#0b1220}
+    .right{display:flex;align-items:center;gap:10px}
+
+    /* Loader overlay */
+    .loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;background:rgba(2,6,23,.55);backdrop-filter:saturate(150%) blur(2px)}
+    .loading.show{display:flex}
+    .spinner{width:28px;height:28px;border-radius:50%;border:3px solid #64748b;border-top-color:transparent;animation:spin 0.9s linear infinite}
+    .loading-box{display:flex;align-items:center;gap:12px;background:#0b1220;border:1px solid #334155;padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    .loading-msg{font-size:14px;color:var(--text)}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">BVV-GB ǀ CRM Elixir <span class="badge">Google Sheets Backup</span></div>
+      <div class="right">
+        <button class="btn" id="btnImport">↻ Charger depuis Sheets</button>
+        <button class="btn" id="btnExport">⇪ Pousser les modifs</button>
+        <button class="btn ghost" id="btnExportCsv">⤓ Export CSV</button>
+        <button class="btn primary" id="btnAdd">+ Nouveau</button>
+      </div>
+    </header>
+
+    <div class="card" style="margin-bottom:14px">
+      <div class="grid">
+        <input id="search" type="text" placeholder="Rechercher (société, nom, mail, téléphone, commentaires)…" />
+        <select id="filtreMagazine">
+          <option value="">Tous magazines</option>
+          <option value="BVV">BVV</option>
+          <option value="GB">GB</option>
+          <option value="Autre">Autre</option>
+        </select>
+        <select id="filtreRappel">
+          <option value="">Date de rappel</option>
+          <option value="en_retard">En retard</option>
+          <option value="aujourdhui">Aujourd'hui</option>
+          <option value="cette_semaine">Cette semaine</option>
+          <option value="aucune">Aucune</option>
+        </select>
+      </div>
+      <div class="hint" style="margin-top:8px">Astuce : tapez <span class="kbd">@gmail</span> pour filtrer les emails, ou <span class="kbd">tel:</span> pour chercher un numéro exact.</div>
+    </div>
+
+    <div class="card table-container">
+      <table class="table" aria-label="Tableau des contacts">
+        <thead>
+          <tr>
+            <th>SOCIETE</th>
+            <th>Magazine</th>
+            <th>DATE DE RAPPEL</th>
+            <th>COMMENTAIRES</th>
+            <th>TELEPHONE</th>
+            <th>MAIL</th>
+            <th>NOM</th>
+            <th>PRENOM</th>
+            <th>POSTE</th>
+            <th>ADRESSE</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <p class="hint" style="margin-top:50px">Les données sont enregistrées en local automatiquement et peuvent être synchronisées avec Google Sheets. Configurez l'URL API plus bas.</p>
+
+    <details class="card" style="margin-top:14px">
+      <summary><strong>Paramètres & intégration Sheets</strong></summary>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
+        <div>
+          <label class="hint">URL Web App (Apps Script) :</label>
+          <input id="apiUrl" type="text" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec" />
+        </div>
+        <div>
+          <label class="hint">ID Google Sheet (facultatif, informatif) :</label>
+          <input id="sheetId" type="text" placeholder="1AbCDef..." />
+        </div>
+      </div>
+      <div class="hint" style="margin-top:8px">Laissez vide pour travailler hors-ligne (LocalStorage). Quand vous ajoutez l'URL, les boutons Import/Export communiquent avec votre feuille.</div>
+    </details>
+  </div>
+
+  <!-- Loader overlay -->
+  <div id="loading" class="loading" role="status" aria-live="polite" aria-hidden="true">
+    <div class="loading-box">
+      <div class="spinner" aria-hidden="true"></div>
+      <div class="loading-msg" id="loadingMsg">Chargement…</div>
+    </div>
+  </div>
+
+  <dialog id="dlg">
+    <form method="dialog" id="frm">
+      <div class="modal-head">
+        <div id="dlgTitle" style="font-weight:700">Nouveau contact</div>
+        <button class="btn ghost" value="cancel">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="id" />
+        <div class="modal-grid">
+          <div>
+            <label class="hint">Société</label>
+            <input id="societe" type="text" placeholder="Ex: ACME" />
+          </div>
+          <div>
+            <label class="hint">Magazine</label>
+            <select id="magazine">
+              <option value="">—</option>
+              <option value="BVV">BVV</option>
+              <option value="GB">GB</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+          <div>
+            <label class="hint">Date de rappel</label>
+            <input id="dateRappel" type="date" />
+          </div>
+          <div>
+            <label class="hint">Téléphone</label>
+            <input id="telephone" type="tel" placeholder="06…" />
+          </div>
+          <div>
+            <label class="hint">Mail</label>
+            <input id="mail" type="email" placeholder="nom@exemple.com" />
+          </div>
+          <div>
+            <label class="hint">Poste</label>
+            <input id="poste" type="text" placeholder="Poste" />
+          </div>
+          <div>
+            <label class="hint">Nom</label>
+            <input id="nom" type="text" placeholder="Nom" />
+          </div>
+          <div>
+            <label class="hint">Prénom</label>
+            <input id="prenom" type="text" placeholder="Prénom" />
+          </div>
+          <div class="full">
+            <label class="hint">Adresse</label>
+            <input id="adresse" type="text" placeholder="Adresse" />
+          </div>
+          <textarea id="commentaires" placeholder="Commentaires / contexte…"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn" value="cancel">Annuler</button>
+        <button class="btn primary" id="btnSave" value="default">Enregistrer</button>
+      </div>
+    </form>
+  </dialog>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // ====== HELPERS ======
+  const parseJSONSafe = (key, fallback) => {
+    try {
+      const v = localStorage.getItem(key);
+      return v ? JSON.parse(v) : fallback;
+    } catch { return fallback; }
+  };
+
+  // ====== CONFIG ======
+  const settings = {
+    get apiUrl(){ return localStorage.getItem('crm_apiUrl') || ''; },
+    set apiUrl(v){ localStorage.setItem('crm_apiUrl', v||''); },
+    get sheetId(){ return localStorage.getItem('crm_sheetId') || ''; },
+    set sheetId(v){ localStorage.setItem('crm_sheetId', v||''); },
+  };
+
+  // ====== STATE ======
+  /** @type {Array<Contact>} */
+  let data = parseJSONSafe('crm_data', []);
+  // Migration auto ancien schéma -> nouveau
+  if (Array.isArray(data) && data.length && data[0] && ('nom' in data[0] || 'email' in data[0]) && !('societe' in data[0])) {
+    data = data.map(o => ({
+      id: o.id || ('L' + Math.random().toString(36).slice(2)),
+      societe: '',
+      magazine: '',
+      dateRappel: o.relance || '',
+      commentaires: o.notes || '',
+      telephone: o.telephone || '',
+      mail: o.email || '',
+      nom: o.nom || '',
+      prenom: o.prenom || '',
+      poste: '',
+      adresse: '',
+      gsId: o.gsId || null
+    }));
+    localStorage.setItem('crm_data', JSON.stringify(data));
+  }
+
+  let dirty = new Set(parseJSONSafe('crm_dirty', []));
+  let counter = Number(localStorage.getItem('crm_counter')||'1') || 1;
+
+  /** @typedef {{id:string, societe?:string, magazine?:string, dateRappel?:string, commentaires?:string, telephone?:string, mail?:string, nom?:string, prenom?:string, poste?:string, adresse?:string, gsId?:number}} Contact */
+
+  // ====== DOM ======
+  const els = {
+    rows: document.getElementById('rows'),
+    search: document.getElementById('search'),
+    filtreMagazine: document.getElementById('filtreMagazine'),
+    filtreRappel: document.getElementById('filtreRappel'),
+    btnAdd: document.getElementById('btnAdd'),
+    btnImport: document.getElementById('btnImport'),
+    btnExport: document.getElementById('btnExport'),
+    btnExportCsv: document.getElementById('btnExportCsv'),
+    dlg: document.getElementById('dlg'),
+    frm: document.getElementById('frm'),
+    id: document.getElementById('id'),
+    societe: document.getElementById('societe'),
+    magazine: document.getElementById('magazine'), // <select>
+    dateRappel: document.getElementById('dateRappel'),
+    telephone: document.getElementById('telephone'),
+    mail: document.getElementById('mail'),
+    nom: document.getElementById('nom'),
+    prenom: document.getElementById('prenom'),
+    poste: document.getElementById('poste'),
+    adresse: document.getElementById('adresse'),
+    commentaires: document.getElementById('commentaires'),
+    apiUrl: document.getElementById('apiUrl'),
+    sheetId: document.getElementById('sheetId'),
+    loading: document.getElementById('loading'),
+    loadingMsg: document.getElementById('loadingMsg')
+  };
+
+  // ====== UTIL ======
+  const saveLocal = () => {
+    localStorage.setItem('crm_data', JSON.stringify(data));
+    localStorage.setItem('crm_dirty', JSON.stringify([...dirty]));
+    localStorage.setItem('crm_counter', String(counter));
+  };
+
+  const uid = () => 'L'+(counter++);
+  const fmtDate = d=> d ? new Date(d).toLocaleDateString('fr-FR') : '';
+  const todayStr = new Date().toISOString().slice(0,10);
+
+  function setBusy(on, msg){
+    if(!els.loading) return;
+    els.loading.classList.toggle('show', !!on);
+    els.loading.setAttribute('aria-hidden', on ? 'false' : 'true');
+    if(els.loadingMsg) els.loadingMsg.textContent = msg ? msg : (on ? 'Chargement…' : '');
+    [els.btnImport, els.btnExport, els.btnExportCsv, els.btnAdd].forEach(b=> b && (b.disabled = !!on));
+  }
+
+  function matchFilters(c){
+    const q = (els.search?.value || '').trim().toLowerCase();
+    const fm = els.filtreMagazine?.value || '';
+    const fr = els.filtreRappel?.value || '';
+    let ok = true;
+    if(q){
+      if(q.startsWith('tel:')) ok = (c.telephone||'').replace(/\s+/g,'') === q.slice(4);
+      else ok = [c.societe,c.magazine,c.nom,c.prenom,c.telephone,c.mail,c.adresse,c.commentaires,c.poste]
+        .some(v=> (v||'').toLowerCase().includes(q));
+    }
+    if(ok && fm) ok = (c.magazine||'')===fm;
+    if(ok && fr){
+      const r = c.dateRappel || '';
+      const date = r ? new Date(r) : null;
+      const now = new Date();
+      const weekEnd = new Date(); weekEnd.setDate(now.getDate() + (7 - now.getDay()));
+      if(fr==='aucune') ok = !r;
+      else if(fr==='en_retard') ok = r && date < new Date(todayStr);
+      else if(fr==='aujourdhui') ok = r===todayStr;
+      else if(fr==='cette_semaine') ok = r && date>=new Date(todayStr) && date<=weekEnd;
+    }
+    return ok;
+  }
+
+  function render(){
+    if(!els.rows) return;
+    els.rows.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    data.filter(matchFilters).forEach(c=>{
+      const tr = document.createElement('tr');
+      tr.className='row';
+      tr.innerHTML = `
+        <td>${c.societe||''}</td>
+        <td>${c.magazine||''}</td>
+        <td>${c.dateRappel?fmtDate(c.dateRappel):'<span class="muted">—</span>'}</td>
+        <td>${c.commentaires?String(c.commentaires).replace(/</g,'&lt;'):''}</td>
+        <td>${c.telephone?`<a class="link" href="tel:${c.telephone}">${c.telephone}</a>`:''}</td>
+        <td>${c.mail?`<a class="link" href="mailto:${c.mail}">${c.mail}</a>`:''}</td>
+        <td>${c.nom||''}</td>
+        <td>${c.prenom||''}</td>
+        <td>${c.poste||''}</td>
+        <td>${c.adresse||''}</td>
+        <td class="actions">
+          ${dirty.has(c.id)?'<span class="hint">• non synchronisé</span>':''}
+          <button class="btn" data-edit="${c.id}">✎</button>
+          <button class="btn danger" data-del="${c.id}">🗑</button>
+        </td>`;
+      frag.appendChild(tr);
+    });
+    els.rows.appendChild(frag);
+  }
+
+  // ====== CRUD (local) ======
+  function upsertLocal(c){
+    const i = data.findIndex(x=>x.id===c.id);
+    if(i>=0) data[i]=c; else data.unshift(c);
+    dirty.add(c.id);
+    saveLocal();
+    render();
+  }
+  function removeLocal(id){
+    data = data.filter(x=>x.id!==id);
+    dirty.delete(id);
+    saveLocal();
+    render();
+  }
+
+  // ====== MAGAZINE (select uniquement, accepte texte depuis Sheets) ======
+  function ensureMagazineOption(value) {
+    if (!els.magazine) return;
+    const v = (value ?? '').toString();
+    // si vide, ne rien ajouter
+    if (!v) return;
+    // si l'option existe déjà, on ne fait rien
+    for (const opt of els.magazine.options) {
+      if (opt.value === v) return;
+    }
+    // sinon on l'ajoute dynamiquement
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = v;
+    opt.dataset.dynamic = '1';
+    els.magazine.appendChild(opt);
+  }
+
+  function setMagazineValue(value) {
+    if (!els.magazine) return;
+    const v = (value ?? '').toString();
+    ensureMagazineOption(v);
+    els.magazine.value = v; // si v n'existait pas, il existe désormais
+  }
+
+  function getMagazineValue() {
+    const v = els.magazine?.value || '';
+    return v === '-' ? '' : v; // si tu utilises une option "-" pour vider la valeur
+  }
+
+  // ====== MODAL ======
+  function openModal(c){
+    document.getElementById('dlgTitle').textContent = c? 'Modifier contact' : 'Nouveau contact';
+    els.id.value = c?.id || '';
+    els.societe.value = c?.societe || '';
+    setMagazineValue(c?.magazine || '');
+    els.dateRappel.value = c?.dateRappel || '';
+    els.telephone.value = c?.telephone || '';
+    els.mail.value = c?.mail || '';
+    els.nom.value = c?.nom || '';
+    els.prenom.value = c?.prenom || '';
+    els.poste.value = c?.poste || '';
+    els.adresse.value = c?.adresse || '';
+    els.commentaires.value = c?.commentaires || '';
+    els.dlg.showModal();
+  }
+
+  // ====== SHEETS SYNC (CORS-safe) ======
+  function apiEnabled(){ return !!settings.apiUrl; }
+  async function apiFetch(params={}, method='GET'){
+    if(!apiEnabled()) throw new Error('Aucune URL API configurée.');
+    const base = settings.apiUrl;
+    if(method === 'GET'){
+      const url = new URL(base);
+      Object.entries(params).forEach(([k,v])=> url.searchParams.set(k,String(v)));
+      const res = await fetch(url.toString(), { method:'GET', credentials:'omit' });
+      if(!res.ok) throw new Error('Erreur API '+res.status);
+      return res.json();
+    }else{
+      const body = new URLSearchParams();
+      for(const [k,v] of Object.entries(params)){
+        body.append(k, typeof v === 'object' ? JSON.stringify(v) : String(v));
+      }
+      const res = await fetch(base, { method:'POST', body, credentials:'omit' });
+      if(!res.ok) throw new Error('Erreur API '+res.status);
+      return res.json();
+    }
+  }
+
+  function normalizeContactFromApi(row){
+    const norm = {};
+    for(const [k,v] of Object.entries(row||{})){
+      const kk = String(k).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+      norm[kk] = v;
+    }
+    return {
+      gsId: Number(norm.gsid ?? row.gsId ?? 0) || null,
+      societe: norm.societe || norm.entreprise || '',
+      magazine: norm.magazine || '',
+      dateRappel: norm.daterappel || norm.rappel || '',
+      commentaires: norm.commentaires || norm.notes || '',
+      telephone: (norm.telephone ?? '').toString(),
+      mail: norm.mail || norm.email || '',
+      nom: norm.nom || '',
+      prenom: norm.prenom || '',
+      poste: norm.poste || '',
+      adresse: norm.adresse || ''
+    };
+  }
+
+  async function importFromSheets(){
+    setBusy(true, 'Chargement depuis Sheets…');
+    try{
+      const out = await apiFetch({ action:'list' }, 'GET');
+      data = out.rows.map(r => {
+        const c = normalizeContactFromApi(r);
+        return { id: 'G' + (c.gsId ?? uid().slice(1)), ...c };
+      });
+      dirty = new Set();
+      saveLocal(); render();
+      toast('Import terminé');
+    }catch(e){
+      alert('Import impossible: '+e.message);
+    } finally { setBusy(false); }
+  }
+
+  function contactToApiRow(c){
+    return {
+      gsId: c.gsId || null,
+      societe: c.societe || '', 'SOCIETE': c.societe || '',
+      magazine: c.magazine || '', 'Magazine': c.magazine || '', // en-tête côté Sheets
+      dateRappel: c.dateRappel || '', 'DATE DE RAPPPEL': c.dateRappel || '', // compat
+      commentaires: c.commentaires || '', 'COMMENTAIRES': c.commentaires || '',
+      telephone: String(c.telephone || ''), 'TELEPHONE': String(c.telephone || ''),
+      mail: c.mail || '', 'MAIL': c.mail || '',
+      nom: c.nom || '', 'NOM': c.nom || '',
+      prenom: c.prenom || '', 'PRENOM': c.prenom || '',
+      poste: c.poste || '', 'POSTE': c.poste || '',
+      adresse: c.adresse || '', 'ADRESSE': c.adresse || ''
+    };
+  }
+
+  async function exportDirty(){
+    if(!apiEnabled()) return alert("Ajoutez l'URL de votre Web App.");
+    const toSend = data.filter(c => dirty.has(c.id));
+    if(!toSend.length) return toast('Rien à synchroniser');
+
+    const oldIds = toSend.map(c => c.id);
+    setBusy(true, 'Synchronisation en cours…');
+    try{
+      const payload = toSend.map(contactToApiRow);
+      const out = await apiFetch({ action:'bulkUpsert', rows: payload }, 'POST');
+      out.results.forEach((r,i)=>{
+        const local = toSend[i];
+        local.gsId = r.gsId;
+        local.id = 'G' + r.gsId;
+      });
+      oldIds.forEach(id => dirty.delete(id));
+      saveLocal(); render(); toast('Synchronisation réussie');
+    }catch(e){
+      alert('Export impossible: ' + e.message);
+    } finally { setBusy(false); }
+  }
+
+  async function deleteInSheets(gsId){
+    if(!apiEnabled() || !gsId) return;
+    try{
+      setBusy(true, 'Suppression…');
+      await apiFetch({ action:'delete', id: String(gsId) }, 'POST');
+    }catch(e){
+      console.warn('Suppression distante échouée', e);
+    } finally { setBusy(false); }
+  }
+
+  // ====== EXPORT CSV ======
+  function exportCsv(){
+    const cols = ['societe','magazine','dateRappel','commentaires','telephone','mail','nom','prenom','poste','adresse'];
+    const lines = [cols.join(',')].concat(
+      data.map(c=> cols.map(k=> '"'+String(c[k]||'').replace(/"/g,'""')+'"').join(','))
+    );
+    const blob = new Blob(["\uFEFF"+lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = 'contacts.csv'; a.click();
+  }
+
+  // ====== TOAST ======
+  let toastTimer; function toast(msg){
+    clearTimeout(toastTimer);
+    let t = document.getElementById('toast');
+    if(!t){ t=document.createElement('div'); t.id='toast'; t.style.cssText='position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0b1220;border:1px solid #334155;color:#e5e7eb;padding:10px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35);z-index:9999'; document.body.appendChild(t); }
+    t.textContent = msg; t.style.opacity='1';
+    toastTimer=setTimeout(()=>{t.style.opacity='0'}, 2200);
+  }
+
+  // ====== EVENTS ======
+  els.search?.addEventListener('input', render);
+  els.filtreMagazine?.addEventListener('change', render);
+  els.filtreRappel?.addEventListener('change', render);
+  els.btnAdd?.addEventListener('click', ()=> openModal(null));
+  els.btnImport?.addEventListener('click', importFromSheets);
+  els.btnExport?.addEventListener('click', exportDirty);
+  els.btnExportCsv?.addEventListener('click', exportCsv);
+
+  if (els.apiUrl) els.apiUrl.value = settings.apiUrl;
+  if (els.sheetId) els.sheetId.value = settings.sheetId;
+  els.apiUrl?.addEventListener('change', e=>{ settings.apiUrl = e.target.value.trim(); toast('URL API enregistrée'); });
+  els.sheetId?.addEventListener('change', e=>{ settings.sheetId = e.target.value.trim(); toast('Sheet ID enregistré'); });
+
+  els.rows?.addEventListener('click', (e)=>{
+    const b = e.target.closest('button'); if(!b) return;
+    const id = b.dataset.edit || b.dataset.del; if(!id) return;
+    const c = data.find(x=>x.id===id);
+    if(b.dataset.edit){ openModal(c); }
+    if(b.dataset.del){ if(confirm('Supprimer ce contact ?')){ removeLocal(id); deleteInSheets(c?.gsId); }}
+  });
+
+  els.frm?.addEventListener('submit', (e)=>{
+    if (e.submitter && e.submitter.value === 'cancel') {
+      return; // pas de preventDefault => <form method="dialog"> ferme la modale
+    }
+    e.preventDefault();
+    const c = {
+      id: els.id.value || uid(),
+      societe: els.societe.value.trim(),
+      magazine: getMagazineValue(),          // <-- valeur du select (ou vide si "-")
+      dateRappel: els.dateRappel.value,
+      telephone: els.telephone.value.trim(),
+      mail: els.mail.value.trim(),
+      nom: els.nom.value.trim(),
+      prenom: els.prenom.value.trim(),
+      poste: els.poste.value.trim(),
+      adresse: els.adresse.value.trim(),
+      commentaires: els.commentaires.value.trim(),
+      gsId: data.find(x=>x.id===els.id.value)?.gsId || null
+    };
+    if(!c.societe && !c.nom) return alert('Renseignez au moins Société ou Nom.');
+    upsertLocal(c);
+    els.dlg.close();
+  });
+
+  // ====== INIT ======
+  render();
+});
+</script>
+
+</body>
+</html>
