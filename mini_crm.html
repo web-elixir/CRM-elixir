@@ -5,80 +5,150 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>BVV-GB ǀ CRM Elixir</title>
   <style>
-    :root{
-      --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --acc:#22d3ee; --acc2:#60a5fa; --border:#1f2937; --danger:#ef4444;
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:linear-gradient(180deg,#0b1220, #0f172a 120%); color:var(--text)}
-    .wrap{max-width:100%;margin:32px auto;padding:0 16px}
-    header{display:flex;gap:16px;align-items:center;justify-content:space-between;margin-bottom:18px}
-    .title{font-size:20px;font-weight:700;letter-spacing:.2px}
-    .badge{font-size:12px;color:#0b1220;background:linear-gradient(90deg,var(--acc),var(--acc2));padding:6px 10px;border-radius:999px;font-weight:700}
+  :root{
+    --bg:#0f172a; --card:#111827; --muted:#94a3b8; --text:#e5e7eb; --acc:#22d3ee; --acc2:#60a5fa; --border:#1f2937; --danger:#ef4444;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial; background:linear-gradient(180deg,#0b1220, #0f172a 120%); color:var(--text); overflow: hidden !important;}
+  .wrap{max-width:100%;padding:0 16px}
+  header{display:flex;gap:16px;align-items:center;justify-content:space-between;padding-top: 10px;}
+  .title{font-size:20px;font-weight:700;letter-spacing:.2px}
+  .badge{font-size:12px;color:#0b1220;background:linear-gradient(90deg,var(--acc),var(--acc2));padding:6px 10px;border-radius:999px;font-weight:700}
 
-    /* Inputs : style robuste (même sans type explicite) */
-    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
-    select, textarea{
-      background:#0b1220;border:1px solid var(--border);color:var(--text);
-      padding:10px 12px;border-radius:10px;outline:none;width:100%;
-    }
-    input::placeholder,textarea::placeholder{color:#6b7280}
-    .btn{border:1px solid var(--border);background:#0b1220;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s ease;user-select:none}
-    .btn:hover{transform:translateY(-1px);border-color:#2c3747}
-    .btn.primary{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#0b1220;border:none;font-weight:700}
-    .btn.ghost{background:transparent}
-    .btn.danger{background:#241114;border-color:#3d1a1a;color:#fca5a5}
-    .btn[disabled]{opacity:.6;cursor:not-allowed;transform:none}
+  /* Inputs */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select, textarea{
+    background:#0b1220;border:1px solid var(--border);color:var(--text);
+    padding:10px 12px;border-radius:10px;outline:none;width:100%;
+  }
+  input::placeholder,textarea::placeholder{color:#6b7280}
+  .btn{border:1px solid var(--border);background:#0b1220;color:var(--text);padding:10px 12px;border-radius:10px;cursor:pointer;transition:.15s ease;user-select:none}
+  .btn:hover{transform:translateY(-1px);border-color:#2c3747}
+  .btn.primary{background:linear-gradient(90deg,var(--acc),var(--acc2));color:#0b1220;border:none;font-weight:700}
+  .btn.ghost{background:transparent}
+  .btn.danger{background:#241114;border-color:#3d1a1a;color:#fca5a5}
+  .btn[disabled]{opacity:.6;cursor:not-allowed;transform:none}
 
-    .grid{display:grid;grid-template-columns:1fr auto auto;gap:10px}
-    .card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;padding:14px}
+  .grid{display:grid;grid-template-columns:1fr auto auto;gap:10px}
+  .card{background:rgba(255,255,255,0.02);border:1px solid var(--border);border-radius:16px;padding:14px}
 
-    /* TABLE + SCROLLBAR */
-    .table-container{overflow-x:auto;-webkit-overflow-scrolling:touch}
-    .table{min-width:1800px;width:auto;border-collapse:separate;border-spacing:0 8px}
-    .table thead th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;text-align:left;padding:0 10px 6px;white-space:nowrap}
-    .row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px}
-    .row td{padding:12px 10px;white-space:normal;word-wrap:break-word}
-    .row td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
-    .row td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
+  /* TABLE + SCROLLBAR */
+  .table-container{overflow-x:auto;-webkit-overflow-scrolling:touch}
+  /* Scrollbar style */
+  /* Firefox (thumb, track) */
+  .top-scroll,
+  .table-container{
+    scrollbar-color: var(--muted) #000; /* thumb noir/gris foncé sur track noir */
+    scrollbar-width: thin;      /* optionnel */
+  }
+  /* WebKit (Chrome, Edge, Safari) */
+  .top-scroll::-webkit-scrollbar,
+  .table-container::-webkit-scrollbar{
+    height: 12px;               /* hauteur de la barre horizontale */
+  }
+  .top-scroll::-webkit-scrollbar-track,
+  .table-container::-webkit-scrollbar-track{
+    background: #000;           /* rail noir */
+  }
+  .top-scroll::-webkit-scrollbar-thumb,
+  .table-container::-webkit-scrollbar-thumb{
+    background: #222;           /* “pouce” gris très foncé pour contraste */
+    border-radius: 999px;
+    border: 2px solid #000;     /* liseré noir -> plus propre */
+  }
 
-    .muted{color:var(--muted)}
-    .actions{display:flex;gap:8px;justify-content:center}
-    .link{color:#93c5fd;text-decoration:none;word-break:break-all}
+  .table{
+    table-layout:fixed;                 /* Respecte les largeurs de colonnes */
+    border-collapse:separate;
+    border-spacing:0 8px;
+    width:max-content;                  /* La table peut dépasser et scroller */
+  }
+  .table thead th{
+    font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;
+    letter-spacing:.08em;text-align:left;padding:0 10px 6px;white-space:nowrap
+  }
+  .table th, .table td{
+    padding:12px 10px;
+    overflow-wrap:anywhere;             /* le contenu ne force pas l’élargissement */
+  }
+  .row{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:12px}
+  .row td:first-child{border-top-left-radius:12px;border-bottom-left-radius:12px}
+  .row td:last-child{border-top-right-radius:12px;border-bottom-right-radius:12px}
 
-    dialog{border:none;border-radius:16px;padding:0;max-width:820px;width:96%;background:#0b1220;color:var(--text)}
-    .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
-    .modal-body{padding:16px}
-    .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .modal-grid textarea{grid-column:1/-1;height:96px}
-    .modal-grid .full{grid-column:1/-1} /* Adresse en pleine largeur */
-    .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 16px;border-top:1px solid var(--border)}
+  /* Largeurs par colonne (exemples) */
+  .table th:nth-child(2), .table td:nth-child(2){ max-width:250px; font-weight: 700 !important; }        
+  .table th:nth-child(3), .table td:nth-child(3){ max-width:100px; }        
+  .table th:nth-child(4), .table td:nth-child(4){ max-width:auto; }        
+  .table th:nth-child(5), .table td:nth-child(5){ max-width:500px;} .table td:nth-child(5) {color: rgba(255, 255, 255, 0.5) !important;}       
+  .table th:nth-child(6), .table td:nth-child(6){ max-width:140px; }        
+  .table th:nth-child(7), .table td:nth-child(7){ max-width:200px; }        
+  .table th:nth-child(8), .table td:nth-child(8){ max-width:150px; }        
+  .table th:nth-child(9), .table td:nth-child(9){ max-width:150px; }        
+  .table th:nth-child(10), .table td:nth-child(10){ max-width:150px; }        
+  .table th:nth-child(11), .table td:nth-child(11){ max-width:300px; }        
 
-    .hint{font-size:12px;color:var(--muted)}
-    .kbd{font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;border:1px solid var(--border);padding:3px 6px;border-radius:6px;background:#0b1220}
-    .right{display:flex;align-items:center;gap:10px}
+  .muted{color:var(--muted)}
+  .actions{display:flex;gap:8px;justify-content:center}
+  .link{color:#93c5fd;text-decoration:none;word-break:break-all}
 
-    /* Loader overlay */
-    .loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;background:rgba(2,6,23,.55);backdrop-filter:saturate(150%) blur(2px)}
-    .loading.show{display:flex}
-    .spinner{width:28px;height:28px;border-radius:50%;border:3px solid #64748b;border-top-color:transparent;animation:spin 0.9s linear infinite}
-    .loading-box{display:flex;align-items:center;gap:12px;background:#0b1220;border:1px solid #334155;padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    .loading-msg{font-size:14px;color:var(--text)}
-    @keyframes spin{to{transform:rotate(360deg)}}
-  </style>
+  dialog{border:none;border-radius:16px;padding:0;max-width:820px;width:96%;background:#0b1220;color:var(--text)}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+  .modal-body{padding:16px}
+  .modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .modal-grid textarea{grid-column:1/-1;height:96px}
+  .modal-grid .full{grid-column:1/-1}
+  .modal-foot{display:flex;justify-content:flex-end;gap:10px;padding:14px 16px;border-top:1px solid var(--border)}
+
+  .hint{font-size:12px;color:var(--muted)}
+  .kbd{font:12px/1.2 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;border:1px solid var(--border);padding:3px 6px;border-radius:6px;background:#0b1220}
+  .right{display:flex;align-items:center;gap:10px}
+
+  /* Loader overlay */
+  .loading{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:9999;background:rgba(2,6,23,.55);backdrop-filter:saturate(150%) blur(2px)}
+  .loading.show{display:flex}
+  .spinner{width:28px;height:28px;border-radius:50%;border:3px solid #64748b;border-top-color:transparent;animation:spin 0.9s linear infinite}
+  .loading-box{display:flex;align-items:center;gap:12px;background:#0b1220;border:1px solid #334155;padding:12px 14px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+  .loading-msg{font-size:14px;color:var(--text)}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Colonne Actions : grille 2x2 centrée dans la cellule */
+  .table td.actions{
+    display: grid !important;              /* écrase l'ancien display:flex */
+    grid-template-columns: repeat(2, 40px);/* 2 colonnes de 40px (change si besoin) */
+    grid-auto-rows: 40px;                  /* 2 lignes de 40px */
+    gap: 8px;                              /* espacement entre boutons */
+    justify-content: center;               /* centre horizontalement la grille dans le td */
+    align-content: center;                 /* centre verticalement la grille dans le td */
+    padding: 12px;                         /* confort */
+  }
+
+  /* Taille/align des boutons pour une grille propre */
+  .table td.actions .btn{
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 10px;                   /* optionnel, joli */
+  }
+  
+</style>
+
 </head>
 <body>
   <div class="wrap">
-    <header>
+    <header style="position: sticky; top: 0px; background-color: #0B1220 !important; z-index: 10; height: 8vh;">
       <div class="title">BVV-GB ǀ CRM Elixir <span class="badge">Google Sheets Backup</span></div>
       <div class="right">
         <button class="btn" id="btnImport">↻ Charger depuis Sheets</button>
         <button class="btn" id="btnExport">⇪ Pousser les modifs</button>
         <button class="btn ghost" id="btnExportCsv">⤓ Export CSV</button>
+        <button class="btn" id="btnSettings">⚙️ Paramètres</button>
         <button class="btn primary" id="btnAdd">+ Nouveau</button>
       </div>
     </header>
 
-    <div class="card" style="margin-bottom:14px">
+    <div class="card" style="margin-bottom:14px; position: sticky; background-color: #161D2A !important; z-index: 10;">
       <div class="grid">
         <input id="search" type="text" placeholder="Rechercher (société, nom, mail, téléphone, commentaires)…" />
         <select id="filtreMagazine">
@@ -90,18 +160,20 @@
         <select id="filtreRappel">
           <option value="">Date de rappel</option>
           <option value="en_retard">En retard</option>
+          <option value="a_venir">À venir</option>
           <option value="aujourdhui">Aujourd'hui</option>
           <option value="cette_semaine">Cette semaine</option>
           <option value="aucune">Aucune</option>
         </select>
       </div>
-      <div class="hint" style="margin-top:8px">Astuce : tapez <span class="kbd">@gmail</span> pour filtrer les emails, ou <span class="kbd">tel:</span> pour chercher un numéro exact.</div>
+      <!-- <div class="hint" style="margin-top:8px">Astuce : tapez <span class="kbd">@gmail</span> pour filtrer les emails, ou <span class="kbd">tel:</span> pour chercher un numéro exact.</div> -->
     </div>
 
-    <div class="card table-container">
+    <div class="card table-container top-scroll" style="height: 80vh; padding: 0 !important;">
       <table class="table" aria-label="Tableau des contacts">
-        <thead>
+        <thead style="position: sticky; top: 0; background-color: #161D2A; z-index: 10; line-height: 40px;">
           <tr>
+            <th>Actions</th>
             <th>SOCIETE</th>
             <th>Magazine</th>
             <th>DATE DE RAPPEL</th>
@@ -112,29 +184,43 @@
             <th>PRENOM</th>
             <th>POSTE</th>
             <th>ADRESSE</th>
-            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
       </table>
     </div>
 
-    <p class="hint" style="margin-top:50px">Les données sont enregistrées en local automatiquement et peuvent être synchronisées avec Google Sheets. Configurez l'URL API plus bas.</p>
+    <dialog id="dlgSettings">
+      <form method="dialog" id="frmSettings">
+        <div class="modal-head">
+          <div style="font-weight:700">Paramètres & intégration Sheets</div>
+          <button class="btn ghost" value="cancel" aria-label="Fermer">✕</button>
+        </div>
+        <div class="modal-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div>
+              <label class="hint">URL Web App (Apps Script) :</label>
+              <input id="apiUrl" type="text" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec" />
+            </div>
+            <div>
+              <label class="hint">ID Google Sheet (facultatif) :</label>
+              <input id="sheetId" type="text" placeholder="1AbCDef..." />
+            </div>
+          </div>
+          <div class="hint" style="margin-top:8px">
+            Laissez vide pour travailler hors-ligne (LocalStorage). Quand vous ajoutez l'URL, les boutons Import/Export communiquent avec votre feuille.
+          </div>
+        </div>
+        <div class="modal-foot">
+          <button class="btn" value="cancel">Fermer</button>
+          <button class="btn primary" value="default">Enregistrer</button>
+        </div>
+      </form>
+    </dialog>
 
-    <details class="card" style="margin-top:14px">
-      <summary><strong>Paramètres & intégration Sheets</strong></summary>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
-        <div>
-          <label class="hint">URL Web App (Apps Script) :</label>
-          <input id="apiUrl" type="text" placeholder="https://script.google.com/macros/s/XXXXXXXX/exec" />
-        </div>
-        <div>
-          <label class="hint">ID Google Sheet (facultatif, informatif) :</label>
-          <input id="sheetId" type="text" placeholder="1AbCDef..." />
-        </div>
-      </div>
-      <div class="hint" style="margin-top:8px">Laissez vide pour travailler hors-ligne (LocalStorage). Quand vous ajoutez l'URL, les boutons Import/Export communiquent avec votre feuille.</div>
-    </details>
+
+
+    
   </div>
 
   <!-- Loader overlay -->
@@ -206,6 +292,30 @@
   </dialog>
 
 <script>
+  
+  // Bouton pour ouvrir la modale Paramètres
+document.getElementById('btnSettings')?.addEventListener('click', () => {
+  // pré-remplir depuis le storage
+  const api = document.getElementById('apiUrl');
+  const sid = document.getElementById('sheetId');
+  if (api) api.value = localStorage.getItem('crm_apiUrl') || '';
+  if (sid) sid.value = localStorage.getItem('crm_sheetId') || '';
+  document.getElementById('dlgSettings')?.showModal();
+});
+
+// Enregistrer depuis la modale (réutilise tes setters existants)
+document.getElementById('frmSettings')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const api = document.getElementById('apiUrl')?.value.trim() || '';
+  const sid = document.getElementById('sheetId')?.value.trim() || '';
+  localStorage.setItem('crm_apiUrl', api);
+  localStorage.setItem('crm_sheetId', sid);
+  // si tu as déjà des listeners change sur apiUrl/sheetId, ils ne se déclenchent pas ici;
+  // donc on peut toaster et fermer :
+  (typeof toast === 'function') && toast('Paramètres enregistrés');
+  document.getElementById('dlgSettings')?.close();
+});
+
 document.addEventListener('DOMContentLoaded', () => {
   // ====== HELPERS ======
   const parseJSONSafe = (key, fallback) => {
@@ -316,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const weekEnd = new Date(); weekEnd.setDate(now.getDate() + (7 - now.getDay()));
       if(fr==='aucune') ok = !r;
       else if(fr==='en_retard') ok = r && date < new Date(todayStr);
+      else if(fr==='a_venir') ok = r && date > new Date(todayStr);
       else if(fr==='aujourdhui') ok = r===todayStr;
       else if(fr==='cette_semaine') ok = r && date>=new Date(todayStr) && date<=weekEnd;
     }
@@ -330,6 +441,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const tr = document.createElement('tr');
       tr.className='row';
       tr.innerHTML = `
+        <td class="actions">
+          ${dirty.has(c.id)?'<span class="hint">• non synchronisé</span>':''}
+          <button class="btn" data-edit="${c.id}">✎</button>
+          <button class="btn danger" data-del="${c.id}">🗑</button>
+          <button class="btn danger" data-del="${c.id}">🗑</button>
+          <button class="btn danger" data-del="${c.id}">🗑</button>
+        </td>
         <td>${c.societe||''}</td>
         <td>${c.magazine||''}</td>
         <td>${c.dateRappel?fmtDate(c.dateRappel):'<span class="muted">—</span>'}</td>
@@ -340,11 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <td>${c.prenom||''}</td>
         <td>${c.poste||''}</td>
         <td>${c.adresse||''}</td>
-        <td class="actions">
-          ${dirty.has(c.id)?'<span class="hint">• non synchronisé</span>':''}
-          <button class="btn" data-edit="${c.id}">✎</button>
-          <button class="btn danger" data-del="${c.id}">🗑</button>
-        </td>`;
+        `;
       frag.appendChild(tr);
     });
     els.rows.appendChild(frag);
@@ -592,3 +706,263 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- 
+function normKey(s) {
+  return String(s || '')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+// --------- DÉTECTION DES COLONNES (nouveau schéma + anciens alias) ----------
+function getSheetCtx_() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const range = sheet.getDataRange();
+  const values = range.getValues();
+  const display = range.getDisplayValues();
+  const headers = values[0] || [];
+  const keys = headers.map(normKey);
+
+  const findIdx = (aliases) => {
+    for (let a of aliases) {
+      const i = keys.indexOf(a);
+      if (i >= 0) return i;
+    }
+    return -1;
+  };
+
+  const idx = {
+    societe:      findIdx(['societe']),
+    magazine:     findIdx(['magazine', 'magazinebvvougb']),
+    dateRappel:   findIdx(['daterappel', 'datederappel', 'datederapprel', 'datederapppl', 'relance']),
+    commentaires: findIdx(['commentaires', 'notes']),
+    telephone:    findIdx(['telephone']),
+    mail:         findIdx(['mail', 'email']),
+    nom:          findIdx(['nom']),
+    prenom:       findIdx(['prenom']),
+    poste:        findIdx(['poste']),
+    adresse:      findIdx(['adresse']),
+    // pour compat dans doGet (facultatif si tu veux garder les if de secours)
+    relance:      findIdx(['relance']),
+    notes:        findIdx(['notes']),
+    statut:       findIdx(['statut']),
+  };
+
+  return { sheet, values, display, headers, keys, idx };
+}
+
+function formatColsIfPossible_(sheet, idx) {
+  const last = sheet.getLastRow();
+  if (last <= 1) return; // seulement entêtes
+  if (idx.telephone >= 0) sheet.getRange(2, idx.telephone + 1, last - 1, 1).setNumberFormat('@');
+  if (idx.dateRappel >= 0) sheet.getRange(2, idx.dateRappel + 1, last - 1, 1).setNumberFormat('yyyy-mm-dd');
+}
+
+function toISO_(v) {
+  if (Object.prototype.toString.call(v) === '[object Date]' && !isNaN(v)) {
+    return Utilities.formatDate(v, Session.getScriptTimeZone(), 'yyyy-MM-dd');
+  }
+  const s = String(v || '').trim();
+  return /^(\d{4})-(\d{2})-(\d{2})$/.test(s) ? s : '';
+}
+
+// Retourne la valeur à écrire pour un header NORMALISÉ donné, à partir d'un objet lc normalisé (synonymes gérés)
+function fromLcForHeader_(headerNorm, lc) {
+  // map des synonymes entrants -> champs cibles
+  // lc contient déjà des clés normalisées du payload (ex: 'societe', 'email'->'mail', etc.)
+  const pick = (...names) => {
+    for (const n of names) {
+      if (lc[n] != null && lc[n] !== '') return lc[n];
+    }
+    return '';
+  };
+
+  switch (headerNorm) {
+    case 'societe':                return pick('societe');
+    case 'magazine':
+    case 'magazinebvvougb':        return pick('magazine');
+    case 'daterappel':
+    case 'datederappel':
+    case 'datederapprel':
+    case 'datederapppl':
+    case 'relance':                return toISO_(pick('daterappel','datederappel','relance','date')); // robustesse
+    case 'commentaires':
+    case 'notes':                  return pick('commentaires','notes');
+    case 'telephone':              return String(pick('telephone'));
+    case 'mail':
+    case 'email':                  return pick('mail','email');
+    case 'nom':                    return pick('nom');
+    case 'prenom':                 return pick('prenom');
+    case 'poste':                  return pick('poste');
+    case 'adresse':                return pick('adresse');
+    // champs non utilisés par le front mais qu'on évite d'écraser si présents
+    case 'statut':                 return pick('statut');
+    default:                       return ''; // colonnes inconnues -> vide
+  }
+}
+
+/** ---------- GET ---------- */
+function doGet(e) {
+  const action = (e && e.parameter && e.parameter.action) || 'list';
+  if (action !== 'list') {
+    return ContentService.createTextOutput(JSON.stringify({ error: 'Action GET inconnue' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  const { values, display, headers, idx } = getSheetCtx_();
+  const out = [];
+
+  // helper lecture SÛR dans UNE LIGNE (et pas dans la matrice)
+  const at = (rowArr, j) => (j >= 0 ? (rowArr[j] ?? '') : '');
+
+  for (let i = 1; i < values.length; i++) {
+    const rowV = values[i]  || []; // valeurs brutes
+    const rowD = display[i] || []; // valeurs affichées (formatées)
+
+    const o = { gsId: i };
+
+    // 🔧 Utiliser rowV/rowD, pas "values"
+    o.societe      = at(rowV, idx.societe);
+    o.magazine     = at(rowV, idx.magazine);
+    o.dateRappel   = toISO_(at(rowV, idx.dateRappel));
+    o.commentaires = at(rowV, idx.commentaires);
+
+    // téléphone: affichage pour conserver zéros/espaces
+    o.telephone    = at(rowD, idx.telephone);
+
+    // mail: brut
+    o.mail         = at(rowV, idx.mail);
+
+    o.nom          = at(rowV, idx.nom);
+    o.prenom       = at(rowV, idx.prenom);
+    o.poste        = at(rowV, idx.poste);
+    o.adresse      = at(rowV, idx.adresse);
+
+    // Compat ascendante (si colonnes anciennes existent encore)
+    if (!o.dateRappel && idx.relance >= 0)      o.dateRappel   = toISO_(at(rowV, idx.relance));
+    if (!o.commentaires && idx.notes >= 0)      o.commentaires = at(rowV, idx.notes);
+
+    out.push(o);
+  }
+
+  return ContentService.createTextOutput(JSON.stringify({ rows: out }))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+/** ---------- POST ---------- */
+function doPost(e) {
+  const { sheet, headers, idx } = getSheetCtx_();
+
+  // action + payload (form-urlencoded OU JSON)
+  let action = (e && e.parameter && e.parameter.action) || '';
+  let body = {};
+  if (e && e.postData && e.postData.contents) {
+    try { body = JSON.parse(e.postData.contents); } catch (_) {}
+    if (!action && body.action) action = body.action;
+  }
+
+  let incomingRows = [];
+  if (e && e.parameter && e.parameter.rows) {
+    try { incomingRows = JSON.parse(e.parameter.rows); } catch (_) {}
+  } else if (body.rows) {
+    incomingRows = body.rows;
+  }
+
+  try {
+    if (action === 'bulkUpsert') {
+      const results = [];
+
+      incomingRows.forEach((contact) => {
+        // normaliser toutes les clés entrantes
+        const lc = {};
+        Object.keys(contact || {}).forEach(k => lc[normKey(k)] = contact[k]);
+        const gsId = Number(lc.gsid) || null;
+
+        // mise à jour
+        if (gsId && gsId > 0 && (gsId + 1) <= sheet.getLastRow()) {
+          const realRow = gsId + 1;
+          headers.forEach((h, col) => {
+            const headerNorm = normKey(h);
+            const val = fromLcForHeader_(headerNorm, lc);
+
+            // Formats spéciaux
+            if (col === idx.telephone && idx.telephone >= 0) {
+              sheet.getRange(realRow, col + 1).setNumberFormat('@').setValue(String(val || ''));
+            } else if (col === idx.dateRappel && idx.dateRappel >= 0) {
+              sheet.getRange(realRow, col + 1).setNumberFormat('yyyy-mm-dd').setValue(toISO_(val) || '');
+            } else {
+              sheet.getRange(realRow, col + 1).setValue(val);
+            }
+          });
+          results.push({ gsId });
+        } else {
+          // création
+          const newRow = headers.map((h, col) => {
+            const headerNorm = normKey(h);
+            let val = fromLcForHeader_(headerNorm, lc);
+            if (col === idx.dateRappel && idx.dateRappel >= 0) val = toISO_(val);
+            return val || '';
+          });
+          sheet.appendRow(newRow);
+          const newRealRow = sheet.getLastRow();
+          if (idx.telephone >= 0) sheet.getRange(newRealRow, idx.telephone + 1).setNumberFormat('@');
+          if (idx.dateRappel >= 0) sheet.getRange(newRealRow, idx.dateRappel + 1).setNumberFormat('yyyy-mm-dd');
+          results.push({ gsId: newRealRow - 1 });
+        }
+      });
+
+      formatColsIfPossible_(sheet, idx);
+
+      return ContentService.createTextOutput(JSON.stringify({ results }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    if (action === 'delete') {
+      const idParam = (e && e.parameter && e.parameter.id) || (body && body.id);
+      const gsId = Number(idParam);
+      if (!gsId || gsId < 1) {
+        return ContentService.createTextOutput(JSON.stringify({ error: 'ID invalide' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      const realRow = gsId + 1;
+      const last = sheet.getLastRow();
+      if (realRow < 2 || realRow > last) {
+        return ContentService.createTextOutput(JSON.stringify({ error: 'ID hors limites' }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      sheet.deleteRow(realRow);
+      return ContentService.createTextOutput(JSON.stringify({ result: 'success' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({ error: 'Action POST inconnue' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({ error: err.message }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+} -->
