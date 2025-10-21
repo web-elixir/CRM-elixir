@@ -171,7 +171,6 @@
           <option value="valide">Prend un pack</option>
           <option value="important">À rappeler</option>
           <option value="favoris">Ne prend pas</option>
-          <option value="none">Pas d'appels</option>
         </select>
         <select id="filtreMagazine">
           <option value="">Magazines</option>
@@ -549,6 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   if(v instanceof Date) return isNaN(v)?'': utcYmd(v);
 
+  
+
     let s = String(v).trim(); if(!s) return '';
     // If it contains time (e.g. "17/10/2025 00:00:00"), take the date portion first
     if(s.indexOf(' ')>0) s = s.split(' ')[0];
@@ -619,14 +620,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const r = c.dateRappel || '';
     const date = r ? parseToLocalDate(r) : null;
     const todayLocal = parseToLocalDate(todayStr);
-    const now = new Date();
-    const weekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()));
-    if(fr==='aucune') ok = !r;
-    else if(fr==='en_retard') ok = r && date && (date.getTime() < todayLocal.getTime());
-    else if(fr==='a_venir') ok = r && date && (date.getTime() > todayLocal.getTime());
-    else if(fr==='aujourdhui') ok = r && date && (date.getTime() === todayLocal.getTime());
-    else if(fr==='cette_semaine') ok = r && date && (date.getTime() >= todayLocal.getTime() && date.getTime() <= weekEnd.getTime());
-      }
+  const now = new Date();
+  const weekEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + (7 - now.getDay()));
+  if(fr==='aucune') ok = !r;
+  else if(fr==='en_retard') ok = r && date && (date.getTime() < todayLocal.getTime());
+  else if(fr==='a_venir') ok = r && date && (date.getTime() > todayLocal.getTime());
+  else if(fr==='aujourdhui') ok = r && date && (date.getTime() === todayLocal.getTime());
+  else if(fr==='cette_semaine') ok = r && date && (date.getTime() >= todayLocal.getTime() && date.getTime() <= weekEnd.getTime());
+    }
     // Period filter (footer): current month or current year based on dateRappel
     if(ok && fp){
       const r = c.dateRappel || '';
@@ -849,7 +850,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if(_parsed){
       const _d = isoToLocalDate(_parsed);
       if(_d){
-        _d.setDate(_d.getDate() + 1);
+        _d.setDate(_d.getDate());
         _finalDate = formatLocalYmd(_d);
       }
     }
